@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0e1a">
+<title>Bot Host + Chat AI</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0a0e1a;--card:rgba(30,41,59,.55);--line:rgba(148,163,184,.14);--text:#f1f5f9;--muted:#94a3b8;--p:#6366f1;--p2:#8b5cf6;--green:#10b981;--red:#ef4444;--warn:#f59e0b;--cyan:#06b6d4}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(600px circle at 20% 0%,rgba(99,102,241,.15),transparent 40%),radial-gradient(500px circle at 80% 100%,rgba(139,92,246,.12),transparent 40%);pointer-events:none;z-index:0}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;position:sticky;top:0;background:rgba(10,14,26,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--line);z-index:10;gap:8px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--p),var(--p2));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.brand h1{font-size:15px;font-weight:700}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-top:2px}
+.pill.on{background:rgba(16,185,129,.15);color:#34d399}
+.pill.off{background:rgba(239,68,68,.15);color:#f87171}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pl 2s infinite}
+@keyframes pl{0%,100%{opacity:1}50%{opacity:.4}}
+main{padding:16px;padding-bottom:100px;position:relative;z-index:1;max-width:720px;margin:0 auto}
+.view{display:none}.view.active{display:block}
+.hero{background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.1));border:1px solid rgba(99,102,241,.25);border-radius:18px;padding:18px;margin-bottom:14px}
+.hero .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:6px}
+.hero .st{font-size:24px;font-weight:800;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#fff,#a5b4fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero .up{font-size:12.5px;color:var(--muted);margin-top:6px}
+.hero .pf{font-size:11px;color:var(--muted);margin-top:3px;font-family:monospace;word-break:break-all}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.stat .v{font-size:17px;font-weight:700}.stat .l{font-size:11px;color:var(--muted);margin-top:2px}
+.bar{height:4px;background:rgba(148,163,184,.15);border-radius:2px;margin-top:8px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--p),var(--p2));transition:width .4s}
+.section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.st2{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.console{background:#050810;border:1px solid rgba(99,102,241,.15);border-radius:10px;padding:12px;font-family:monospace;font-size:11.5px;line-height:1.7;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-word;color:#a5b4fc;margin-bottom:12px}
+.console .ok{color:#34d399}.console .err{color:#f87171}.console .tm{color:#475569}
+.term{background:#050810;border:1px solid rgba(99,102,241,.2);border-radius:10px;overflow:hidden}
+.term-out{font-family:monospace;font-size:12px;line-height:1.65;padding:12px;min-height:200px;max-height:340px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;color:#a5b4fc}
+.term-out .ok{color:#34d399}.term-out .err{color:#f87171}.term-out .info{color:#94a3b8}.term-out .echo{color:#fbbf24;font-weight:600}
+.term-in{display:flex;border-top:1px solid rgba(99,102,241,.15);background:rgba(5,8,16,.8)}
+.term-in .d{padding:12px;color:#34d399;font-family:monospace;font-weight:700}
+.term-in input{flex:1;background:transparent;border:none;color:#f1f5f9;font-family:monospace;font-size:13px;padding:12px 0;outline:none}
+.term-in button{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border:none;padding:0 16px;font-weight:600;font-family:inherit;font-size:12px}
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:6px}
+.btn:active{transform:scale(.97)}.btn:disabled{opacity:.5}
+.btn.g{background:linear-gradient(135deg,#10b981,#059669)}
+.btn.r{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+.btn.p{background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.35);color:#a5b4fc}
+.f{margin-bottom:12px}
+.f label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.f input,.f select,.f textarea{width:100%;padding:12px;background:rgba(5,8,16,.6);color:var(--text);border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;outline:none}
+.f input:focus,.f select:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.upload{border:2px dashed rgba(99,102,241,.35);border-radius:14px;padding:28px 16px;text-align:center;cursor:pointer;margin-bottom:14px;background:rgba(99,102,241,.05);transition:.2s}
+.upload:active{border-color:var(--p);background:rgba(99,102,241,.1)}
+.upload svg{width:36px;height:36px;color:var(--p);margin-bottom:8px}
+.upload h3{font-size:14px;font-weight:600;margin-bottom:4px}
+.upload p{font-size:12px;color:var(--muted)}
+.tabbar{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(10,14,26,.95);backdrop-filter:blur(20px);border-top:1px solid var(--line);z-index:100;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;background:transparent;border:none;color:var(--muted);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer}
+.tab.active{color:#a5b4fc}
+.tab svg{width:20px;height:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.card .info{flex:1;min-width:0}
+.card .nm{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .mt{font-size:11px;color:var(--muted);margin-top:2px}
+.card .acts{display:flex;gap:6px;flex-shrink:0}
+.mini{padding:6px 10px;border-radius:8px;border:none;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer}
+.mini.ok{background:rgba(16,185,129,.15);color:#34d399}
+.mini.bad{background:rgba(239,68,68,.15);color:#f87171}
+.mini.inf{background:rgba(99,102,241,.15);color:#a5b4fc}
+.empty{text-align:center;padding:30px 16px;color:var(--muted);font-size:13px}
+.chat-log{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.m{display:flex;gap:8px;align-items:flex-start;max-width:92%}
+.m.me{align-self:flex-end;flex-direction:row-reverse}
+.m .av{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--p2));display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.m.me .av{background:linear-gradient(135deg,#10b981,#059669)}
+.m .b{background:rgba(30,41,59,.7);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.m.me .b{background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.3)}
+.chat-in{display:flex;border-top:1px solid rgba(99,102,241,.2);background:rgba(5,8,16,.8)}
+.chat-in input{flex:1;background:transparent;border:none;color:#f1f5f9;font-size:14px;padding:12px;outline:none}
+.chat-in button{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;border:none;padding:0 18px;font-weight:600;font-family:inherit;font-size:13px}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(30,41,59,.95);color:#fff;padding:11px 18px;border-radius:11px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all .3s;z-index:2000;border:1px solid var(--line);max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ═══ AUTH ═══ */
+#authScreen{position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+#authScreen.hide{display:none}
+#authScreen::before{content:'';position:absolute;inset:0;background:radial-gradient(600px circle at 50% 0%,rgba(99,102,241,.25),transparent 45%),radial-gradient(500px circle at 50% 100%,rgba(139,92,246,.18),transparent 45%);pointer-events:none}
+.auth-card{position:relative;z-index:1;width:100%;max-width:400px;background:rgba(15,23,42,.85);backdrop-filter:blur(20px);border:1px solid var(--line);border-radius:22px;padding:26px 22px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.auth-logo{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,var(--p),var(--p2));display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px;box-shadow:0 8px 24px rgba(99,102,241,.4)}
+.auth-title{text-align:center;font-size:20px;font-weight:800;margin-bottom:4px}
+.auth-sub{text-align:center;font-size:12.5px;color:var(--muted);margin-bottom:22px}
+.auth-tabs{display:flex;background:rgba(5,8,16,.6);border-radius:12px;padding:4px;margin-bottom:18px;border:1px solid var(--line)}
+.auth-tab{flex:1;padding:10px;background:transparent;border:none;color:var(--muted);font-family:inherit;font-weight:700;font-size:13px;border-radius:9px;cursor:pointer;transition:.2s}
+.auth-tab.active{background:linear-gradient(135deg,var(--p),var(--p2));color:#fff}
+.auth-body{display:none}.auth-body.active{display:block}
+.auth-msg{padding:9px 12px;border-radius:9px;font-size:12.5px;margin-bottom:12px;display:none}
+.auth-msg.show{display:block}
+.auth-msg.err{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.auth-msg.ok{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.auth-foot{text-align:center;font-size:11.5px;color:var(--muted);margin-top:16px}
+.auth-foot b{color:#818cf8;cursor:pointer}
+.userbox{display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);border-radius:20px;font-size:11.5px;font-weight:600;color:#a5b4fc;cursor:pointer;flex-shrink:0;max-width:120px;overflow:hidden}
+.userbox .av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--p2));display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0}
+.userbox span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ═══ AI ═══ */
+#aiBubble{position:fixed;right:16px;bottom:96px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--p2));display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;z-index:900;box-shadow:0 8px 28px rgba(99,102,241,.55);border:none;color:#fff;transition:transform .2s;animation:bubPulse 2.5s infinite}
+@keyframes bubPulse{0%{box-shadow:0 8px 28px rgba(99,102,241,.55),0 0 0 0 rgba(99,102,241,.6)}70%{box-shadow:0 8px 28px rgba(99,102,241,.55),0 0 0 16px rgba(99,102,241,0)}100%{box-shadow:0 8px 28px rgba(99,102,241,.55),0 0 0 0 rgba(99,102,241,0)}}
+#aiBubble:active{transform:scale(.9)}
+#aiBubble .ping{position:absolute;top:3px;right:3px;width:13px;height:13px;border-radius:50%;background:#10b981;border:2px solid var(--bg);animation:pl 1.6s infinite}
+#aiBubble.hide{display:none}
+#aiPopup{position:fixed;inset:0;z-index:950;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center}
+#aiPopup.show{display:flex}
+#aiPopup .panel{width:100%;max-width:480px;height:82vh;background:var(--bg);border:1px solid var(--line);border-radius:22px 22px 0 0;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .28s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+#aiPopup .phead{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(10,14,26,.95)}
+#aiPopup .phead .av{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--p2));display:flex;align-items:center;justify-content:center;font-size:18px}
+#aiPopup .phead h3{font-size:14px;font-weight:700}
+#aiPopup .phead p{font-size:11px;color:#34d399;display:flex;align-items:center;gap:4px}
+#aiPopup .close{margin-left:auto;background:rgba(148,163,184,.1);border:1px solid var(--line);color:var(--muted);width:32px;height:32px;border-radius:9px;font-size:16px;cursor:pointer}
+
+/* ═══ SHOP (gộp vào Host) ═══ */
+.prod{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.prod .pn{font-size:14px;font-weight:700;margin-bottom:4px}
+.prod .pd{font-size:12px;color:var(--muted);margin-bottom:8px}
+.prod .pr{font-size:16px;font-weight:800;color:#a5b4fc;margin-bottom:10px}
+.prod .pr span{font-size:11px;font-weight:500;color:var(--muted)}
+.qr-box{text-align:center;padding:16px;background:rgba(5,8,16,.6);border-radius:12px;border:1px solid var(--line);margin-bottom:12px}
+.qr-box img{width:200px;height:200px;border-radius:10px;background:#fff;padding:8px}
+.qr-box .ct{margin-top:10px;font-family:monospace;font-size:13px;color:#34d399;background:#050810;padding:8px 12px;border-radius:8px;display:inline-block;word-break:break-all}
+.qr-box .hint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+.timer{font-size:13px;color:var(--warn);font-weight:600;margin-top:6px}
+.price-list{background:rgba(5,8,16,.5);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:14px;font-size:13px;line-height:1.8}
+.price-list b{color:#a5b4fc}
+.qr-chat{margin-top:10px;text-align:center;background:rgba(5,8,16,.7);border:1px solid rgba(99,102,241,.25);border-radius:12px;padding:12px}
+.qr-chat img{width:160px;height:160px;border-radius:8px;background:#fff;padding:6px}
+.qr-chat .ct{margin-top:8px;font-family:monospace;font-size:12px;color:#34d399;word-break:break-all}
+.qr-chat .tmr{font-size:12px;color:var(--warn);font-weight:600;margin-top:6px}
+.qr-chat.gone{opacity:.35;filter:grayscale(1);pointer-events:none}
+.qr-chat .bill-btn{display:inline-block;margin-top:8px;padding:8px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer}
+.qr-chat .bill-btn:disabled{opacity:.5}
+</style>
+</head>
+<body>
+
+<!-- ═══ MÀN ĐĂNG NHẬP / ĐĂNG KÝ ═══ -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">🤖</div>
+    <div class="auth-title">Bot Host + Chat AI</div>
+    <div class="auth-sub">Đăng nhập để quản lý bot & mua key</div>
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" data-a="login">Đăng nhập</button>
+      <button type="button" class="auth-tab" data-a="reg">Đăng ký</button>
+    </div>
+    <div class="auth-msg" id="authMsg"></div>
+    <div class="auth-body active" id="a-login">
+      <div class="f"><label>Tên đăng nhập</label><input id="lgUser" placeholder="username" autocomplete="username"></div>
+      <div class="f"><label>Mật khẩu</label><input id="lgPass" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button type="button" class="btn" onclick="doLogin()">🔓 Đăng nhập</button>
+    </div>
+    <div class="auth-body" id="a-reg">
+      <div class="f"><label>Tên đăng nhập</label><input id="rgUser" placeholder="username (≥3 ký tự)" autocomplete="username"></div>
+      <div class="f"><label>Email</label><input id="rgMail" type="email" placeholder="you@mail.com" autocomplete="email"></div>
+      <div class="f"><label>Mật khẩu</label><input id="rgPass" type="password" placeholder="≥6 ký tự" autocomplete="new-password"></div>
+      <div class="f"><label>Nhập lại mật khẩu</label><input id="rgPass2" type="password" placeholder="••••••••" autocomplete="new-password"></div>
+      <button type="button" class="btn g" onclick="doRegister()">✅ Tạo tài khoản</button>
+    </div>
+    <div class="auth-foot">Bằng việc tiếp tục, bạn đồng ý với điều khoản. <b onclick="openAIPopup()">🤖 Hỏi AI</b></div>
+  </div>
+</div>
+
+<header>
+  <div class="brand">
+    <div class="logo">🤖</div>
+    <div>
+      <h1>Bot Host + Chat AI</h1>
+      <div><span class="pill off" id="stPill"><span class="dot"></span><span id="stTxt">—</span></span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Host -->
+  <section id="v-host" class="view active">
+    <div class="hero">
+      <div class="lbl">Server Status</div>
+      <div class="st"><span class="dot" style="color:var(--green);background:var(--green)" id="hDot"></span><span id="hStatus">—</span></div>
+      <div class="up">Uptime: <b id="hUp">—</b></div>
+      <div class="pf" id="hPlat">—</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v" id="sCpu">—</div><div class="l">CPU</div><div class="bar"><i id="cpuBar"></i></div></div>
+      <div class="stat"><div class="v" id="sRam">—</div><div class="l">RAM</div><div class="bar"><i id="ramBar"></i></div></div>
+    </div>
+    <div class="section">
+      <div class="st2">📜 Console log</div>
+      <div class="console" id="logBox">Đang tải...</div>
+    </div>
+    <div class="section">
+      <div class="st2">💻 Terminal thật</div>
+      <div class="term">
+        <div class="term-out" id="termOut"></div>
+        <div class="term-in">
+          <span class="d">$</span>
+          <input id="termIn" placeholder="ls, pwd..." autocomplete="off">
+          <button type="button" onclick="runTerm()">Run</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Treo tab -->
+  <section id="v-treo" class="view">
+    <div class="st2" style="font-size:14px;margin-bottom:12px">📌 Treo tab — Bot đang hoạt động</div>
+    <button type="button" class="btn p" onclick="refreshSessions()" style="margin-bottom:12px">↻ Refresh</button>
+    <div id="listBox"></div>
+  </section>
+
+  <!-- Upload -->
+  <section id="v-upload" class="view">
+    <div class="st2" style="font-size:14px;margin-bottom:12px">📤 Upload Bot</div>
+    <div class="upload" id="upZone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <h3 id="upTitle">Chạm để chọn file</h3>
+      <p id="upHint">.zip / .py / .js / .jar (max 100MB)</p>
+      <input type="file" id="fileIn" accept=".zip,.js,.py,.jar,.go" style="display:none">
+    </div>
+    <div class="f"><label>Tên bot</label><input id="botName" placeholder="my-bot"></div>
+    <div class="f"><label>Tên nhóm (tab)</label><input id="botGroup" placeholder="VD: Nhóm 1"></div>
+    <div class="f"><label>Runtime</label>
+      <select id="botRt">
+        <option value="python">Python</option>
+        <option value="node">Node.js</option>
+        <option value="go">Go</option>
+        <option value="java">Java</option>
+      </select>
+    </div>
+    <button type="button" class="btn" id="upBtn" onclick="doUpload()">📤 Deploy & Treo</button>
+  </section>
+
+  <!-- Key đã mua — mua mới chỉ qua Chat AI -->
+  <section id="v-shop" class="view">
+    <div class="section">
+      <div class="st2">🛒 Mua key</div>
+      <div class="price-list" id="priceBox">
+        <b>📋 Bảng giá:</b><br>
+        • 1 ngày — <b>10.000đ</b><br>
+        • 1 tuần — <b>50.000đ</b><br>
+        • 1 tháng — <b>100.000đ</b><br>
+        • 3 tháng — <b>250.000đ</b>
+      </div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px">
+        Mua key <b style="color:#a5b4fc">chỉ qua Chat AI</b>. Bấm nút bên dưới, chat ví dụ «mua 1 tuần» → AI gửi QR (lấy từ <code>public/qr.png</code>). Hết 120s chưa bank → QR tự xóa.
+      </p>
+      <button type="button" class="btn" onclick="openAIPopup()">🤖 Mở Chat AI để mua</button>
+    </div>
+    <div class="section">
+      <div class="st2">📋 Key đã mua</div>
+      <div id="myOrders">Đang tải...</div>
+    </div>
+  </section>
+</main>
+
+<nav class="tabbar">
+  <button type="button" class="tab active" data-v="host"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Host</button>
+  <button type="button" class="tab" data-v="treo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Treo</button>
+  <button type="button" class="tab" data-v="upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload</button>
+  <button type="button" class="tab" data-v="shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Key</button>
+</nav>
+
+<button type="button" id="aiBubble" class="hide" onclick="openAIPopup()">🤖<span class="ping"></span></button>
+
+<div id="aiPopup">
+  <div class="panel">
+    <div class="phead">
+      <div class="av">🤖</div>
+      <div><h3>Trợ lý AI</h3><p><span class="dot"></span> Online 24/7</p></div>
+      <button type="button" class="close" onclick="closeAIPopup()">✕</button>
+    </div>
+    <div class="chat-log" id="aiLog" style="flex:1;height:auto">
+      <div class="m bot"><div class="av">🤖</div><div class="b">Xin chào! Mình tư vấn key host 💬
+
+📋 BẢNG GIÁ:
+• 1 ngày — 10.000đ
+• 1 tuần — 50.000đ
+• 1 tháng — 100.000đ
+• 3 tháng — 250.000đ
+
+Chat «mua 1 tuần» (hoặc gói khác) → mình gửi QR ngay.
+⏱ QR 120s: đã bank → Gửi bill | chưa bank → tự xóa QR</div></div>
+    </div>
+    <div class="chat-in">
+      <input id="aiIn" placeholder="vd: mua 1 tuần..." autocomplete="off">
+      <button type="button" onclick="sendAI()">Gửi</button>
+    </div>
+    <input type="file" id="aiBillIn" accept="image/*" style="display:none">
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+var API_TOKEN = localStorage.getItem('bh_token') || 'bothost-CHANGE-ME';
+var termHist = [], uploadedFile = null, CURRENT_USER = null, aiHist = [];
+var aiOrderId = null, aiQrTimers = {};
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+var tT = null;
+function toast(m){ var t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(tT); tT=setTimeout(function(){ t.classList.remove('show'); }, 2400); }
+
+async function api(p, opt){
+  opt = opt || {};
+  var h = opt.headers || {};
+  h['Authorization'] = 'Bearer ' + API_TOKEN;
+  if(!(opt.body instanceof FormData)) h['Content-Type'] = 'application/json';
+  var r = await fetch(p, { method: opt.method||'GET', headers: h, body: opt.body });
+  var d = await r.json().catch(function(){ return {ok:false, error:'Bad JSON'}; });
+  if(!r.ok || d.ok === false) throw new Error(d.error || ('HTTP '+r.status));
+  return d;
+}
+
+/* ── Tab bar ── */
+document.querySelectorAll('.tab').forEach(function(t){
+  t.onclick = function(){
+    document.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('active'); });
+    document.querySelectorAll('.view').forEach(function(x){ x.classList.remove('active'); });
+    t.classList.add('active');
+    var v = $('v-' + t.dataset.v);
+    if(v) v.classList.add('active');
+    if(t.dataset.v === 'treo') refreshSessions();
+    if(t.dataset.v === 'shop'){ loadMyOrders(); }
+  };
+});
+
+/* ── Status ── */
+async function refresh(){
+  try{
+    var d = await api('/status');
+    var on = d.running > 0;
+    $('stTxt').textContent = on ? 'LIVE' : 'IDLE';
+    $('stPill').className = 'pill ' + (on ? 'on' : 'off');
+    $('hStatus').textContent = on ? (d.running + ' bot đang treo') : 'Chưa treo bot';
+    $('hUp').textContent = d.uptime || '—';
+    $('hPlat').textContent = (d.platform || '') + ' · ' + (d.cores || '?') + ' cores';
+    $('hDot').style.color = on ? 'var(--green)' : 'var(--red)';
+    $('hDot').style.background = on ? 'var(--green)' : 'var(--red)';
+    $('sCpu').textContent = (d.cpu || 0) + '%';
+    $('sRam').textContent = (d.ram || 0) + '/' + (d.ramTotal || 0) + 'MB';
+    $('cpuBar').style.width = Math.min(d.cpu || 0, 100) + '%';
+    $('ramBar').style.width = Math.min(d.ramPct || 0, 100) + '%';
+    if(Array.isArray(d.logs)){
+      $('logBox').innerHTML = d.logs.map(function(l){
+        var cls = l.type === 'ok' ? 'ok' : l.type === 'err' ? 'err' : '';
+        return '<span class="tm">[' + (l.time||'') + ']</span> <span class="' + cls + '">' + esc(l.msg||'') + '</span>';
+      }).join('\n') || 'Chưa có log';
+    }
+  }catch(e){
+    $('hStatus').textContent = 'Offline';
+    $('stPill').className = 'pill off';
+    $('stTxt').textContent = 'OFF';
+  }
+}
+
+/* ── Terminal ── */
+function renderTerm(){
+  var o = $('termOut');
+  var list = termHist.length ? termHist : [{type:'info', text:'Terminal thật — gõ "help" để xem lệnh.'}];
+  o.innerHTML = list.map(function(l){
+    var cls = l.type === 'echo' ? 'echo' : l.type === 'ok' ? 'ok' : l.type === 'err' ? 'err' : l.type === 'info' ? 'info' : '';
+    var pre = l.type === 'echo' ? '<span style="color:#22d3ee">$ </span>' : '';
+    return '<div class="' + cls + '">' + pre + esc(l.text||'') + '</div>';
+  }).join('');
+  o.scrollTop = o.scrollHeight;
+}
+window.runTerm = async function(){
+  var i = $('termIn'), cmd = i.value.trim(); if(!cmd) return;
+  i.value = '';
+  termHist.push({type:'echo', text:cmd});
+  renderTerm();
+  try{
+    var j = await api('/exec', {method:'POST', body:JSON.stringify({cmd:cmd})});
+    (j.lines||[]).forEach(function(l){ termHist.push({type:l.type||'ok', text:l.text||l}); });
+  }catch(e){ termHist.push({type:'err', text:e.message}); }
+  renderTerm();
+};
+$('termIn').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); runTerm(); } });
+
+/* ── Sessions ── */
+async function refreshSessions(){
+  try{
+    var d = await api('/processes');
+    var box = $('listBox');
+    var procs = d.processes || d.list || [];
+    if(!procs.length){ box.innerHTML = '<div class="empty">Chưa có bot nào đang treo</div>'; return; }
+    box.innerHTML = procs.map(function(p){
+      return '<div class="card"><div class="info"><div class="nm">' + esc(p.name||p.id||'?') + '</div>' +
+        '<div class="mt">' + esc(p.runtime||'') + ' · PID ' + (p.pid||'') + (p.group ? ' · ' + esc(p.group) : '') + '</div></div>' +
+        '<div class="acts"><button type="button" class="mini bad" onclick="window.__stop(\'' + String(p.name||'').replace(/'/g,"\\'") + '\')">Dừng</button></div></div>';
+    }).join('');
+  }catch(e){ $('listBox').innerHTML = '<div class="empty">❌ ' + esc(e.message) + '</div>'; }
+}
+window.__stop = async function(name){
+  try{ await api('/stop', {method:'POST', body:JSON.stringify({name:name})}); toast('Đã dừng'); refreshSessions(); }catch(e){ toast(e.message); }
+};
+window.__start = async function(name){
+  try{ await api('/start', {method:'POST', body:JSON.stringify({name:name})}); toast('Đã treo'); refreshSessions(); }catch(e){ toast(e.message); }
+};
+window.__del = async function(name){
+  if(!confirm('Xóa bot '+name+'?')) return;
+  try{ await api('/delete', {method:'POST', body:JSON.stringify({name:name})}); toast('Đã xóa'); refreshSessions(); }catch(e){ toast(e.message); }
+};
+
+/* ── Upload ── */
+$('upZone').onclick = function(){ $('fileIn').click(); };
+$('fileIn').onchange = function(){
+  uploadedFile = this.files[0] || null;
+  if(uploadedFile){ $('upTitle').textContent = uploadedFile.name; $('upHint').textContent = (uploadedFile.size/1024/1024).toFixed(1)+' MB'; }
+};
+window.doUpload = async function(){
+  if(!uploadedFile){ toast('Chọn file trước'); return; }
+  var name = $('botName').value.trim() || uploadedFile.name.replace(/\.[^.]+$/,'');
+  var fd = new FormData();
+  fd.append('file', uploadedFile);
+  fd.append('name', name);
+  fd.append('group', $('botGroup').value.trim());
+  fd.append('runtime', $('botRt').value);
+  $('upBtn').disabled = true;
+  try{
+    await api('/upload', {method:'POST', body:fd});
+    toast('✅ Deploy OK');
+    uploadedFile = null; $('fileIn').value = '';
+    $('upTitle').textContent = 'Chạm để chọn file'; $('upHint').textContent = '.zip / .py / .js / .jar (max 100MB)';
+  }catch(e){ toast('❌ '+e.message); }
+  $('upBtn').disabled = false;
+};
+
+/* ── Key đã mua (mua mới chỉ qua Chat AI) ── */
+async function loadMyOrders(){
+  try{
+    var j = await api('/api/shop/myorders');
+    var list = j.orders || [];
+    if(!list.length){ $('myOrders').innerHTML = '<div class="empty">Chưa mua key nào</div>'; return; }
+    $('myOrders').innerHTML = list.map(function(o){
+      var st = o.status === 'done' ? '✅ Đã giao' : o.status === 'bill_sent' ? '📷 Đã gửi bill' : o.status === 'pending' ? '⏳ Chờ CK' : esc(o.status);
+      var h = '<div class="card"><div class="info"><div class="nm">' + esc(o.productName) + '</div>' +
+        '<div class="mt">' + o.id + ' · ' + Number(o.price).toLocaleString('vi-VN') + 'đ</div></div>' +
+        '<div style="font-size:11px;color:#94a3b8">' + st + '</div></div>';
+      if(o.status === 'done' && o.key) h += '<div style="margin-bottom:10px;font-family:monospace;font-size:13px;background:#050810;padding:12px;border-radius:8px;border:1px solid rgba(16,185,129,.3);color:#34d399;text-align:center;word-break:break-all">' + esc(o.key) + '</div>';
+      return h;
+    }).join('');
+  }catch(e){ $('myOrders').innerHTML = '<div class="empty">❌ ' + esc(e.message) + '</div>'; }
+}
+
+/* ── Auth ── */
+function authMsg(txt, ok){
+  var m = $('authMsg');
+  m.textContent = txt;
+  m.className = 'auth-msg show ' + (ok ? 'ok' : 'err');
+  setTimeout(function(){ m.classList.remove('show'); }, 3000);
+}
+
+document.querySelectorAll('.auth-tab').forEach(function(t){
+  t.onclick = function(){
+    document.querySelectorAll('.auth-tab').forEach(function(x){ x.classList.remove('active'); });
+    document.querySelectorAll('.auth-body').forEach(function(x){ x.classList.remove('active'); });
+    t.classList.add('active');
+    var body = $('a-' + t.dataset.a);
+    if(body) body.classList.add('active');
+  };
+});
+
+window.doLogin = async function(){
+  var u = $('lgUser').value.trim(), p = $('lgPass').value;
+  if(!u || !p){ authMsg('Nhập đủ tên & mật khẩu'); return; }
+  try{
+    var j = await api('/api/auth/login', {method:'POST', body:JSON.stringify({username:u, password:p})});
+    CURRENT_USER = j.user;
+    API_TOKEN = j.token || API_TOKEN;
+    localStorage.setItem('bh_token', j.token || '');
+    localStorage.setItem('bh_user', JSON.stringify(j.user));
+    authMsg('✅ Đăng nhập thành công!', true);
+    setTimeout(enterApp, 500);
+  }catch(e){ authMsg('❌ ' + e.message); }
+};
+
+window.doRegister = async function(){
+  var u = $('rgUser').value.trim(), m = $('rgMail').value.trim(), p = $('rgPass').value, p2 = $('rgPass2').value;
+  if(u.length < 3){ authMsg('Tên ≥ 3 ký tự'); return; }
+  if(!/^\S+@\S+\.\S+$/.test(m)){ authMsg('Email không hợp lệ'); return; }
+  if(p.length < 6){ authMsg('Mật khẩu ≥ 6 ký tự'); return; }
+  if(p !== p2){ authMsg('Mật khẩu không khớp'); return; }
+  try{
+    var j = await api('/api/auth/register', {method:'POST', body:JSON.stringify({username:u, email:m, password:p})});
+    CURRENT_USER = j.user;
+    API_TOKEN = j.token || API_TOKEN;
+    localStorage.setItem('bh_token', j.token || '');
+    localStorage.setItem('bh_user', JSON.stringify(j.user));
+    authMsg('🎉 Đăng ký OK!', true);
+    setTimeout(enterApp, 700);
+  }catch(e){ authMsg('❌ ' + e.message); }
+};
+
+function enterApp(){
+  $('authScreen').classList.add('hide');
+  $('aiBubble').classList.remove('hide');
+  renderUserBox();
+}
+function renderUserBox(){
+  if(!CURRENT_USER) return;
+  var old = document.getElementById('userChip'); if(old) old.remove();
+  var box = document.createElement('div');
+  box.id = 'userChip'; box.className = 'userbox';
+  var name = CURRENT_USER.username || CURRENT_USER.user || '?';
+  box.innerHTML = '<div class="av">' + (name[0]||'?').toUpperCase() + '</div><span>' + esc(name) + '</span>';
+  box.onclick = logoutConfirm;
+  document.querySelector('header').appendChild(box);
+}
+function logoutConfirm(){
+  if(confirm('Đăng xuất?')){
+    CURRENT_USER = null;
+    localStorage.removeItem('bh_user');
+    localStorage.removeItem('bh_token');
+    location.reload();
+  }
+}
+
+/* ── AI Chat ── */
+window.openAIPopup = function(){ $('aiPopup').classList.add('show'); setTimeout(function(){ $('aiIn').focus(); }, 200); };
+window.closeAIPopup = function(){ $('aiPopup').classList.remove('show'); };
+$('aiPopup').addEventListener('click', function(e){ if(e.target.id === 'aiPopup') closeAIPopup(); });
+
+function appendBot(html){
+  $('aiLog').innerHTML += '<div class="m bot"><div class="av">🤖</div><div class="b">' + html + '</div></div>';
+  $('aiLog').scrollTop = $('aiLog').scrollHeight;
+}
+
+function startAiQrCountdown(orderId, expireIn, wrapId){
+  var remain = expireIn || 120;
+  var el = document.getElementById(wrapId);
+  if(!el) return;
+  var tmr = el.querySelector('.tmr');
+  var img = el.querySelector('img');
+  var btn = el.querySelector('.bill-btn');
+  if(aiQrTimers[orderId]) clearInterval(aiQrTimers[orderId]);
+  function tick(){
+    if(!tmr) return;
+    if(remain > 0){
+      tmr.textContent = '⏱ Còn ' + remain + 's — đã bank → Gửi bill | hết giờ → xóa QR';
+    } else {
+      tmr.textContent = '❌ Hết 120s — QR đã xóa (chưa bank)';
+      if(el) el.classList.add('gone');
+      if(btn) btn.disabled = true;
+      // Hủy đơn phía server
+      if(orderId){
+        api('/api/shop/order/' + orderId + '/cancel', {method:'POST'}).catch(function(){});
+      }
+      clearInterval(aiQrTimers[orderId]);
+      appendBot('⏱ Hết 120 giây. Vì chưa nhận bill, QR đã được xóa.\nNếu bạn <b>đã chuyển khoản</b> hãy chat «đã bank» hoặc vào tab Key → Gửi bill.\nMuốn mua lại: chat «mua 1 tuần» (hoặc gói khác).');
+    }
+    remain--;
+  }
+  tick();
+  aiQrTimers[orderId] = setInterval(tick, 1000);
+  // Poll trạng thái
+  var poll = setInterval(async function(){
+    try{
+      var j = await api('/api/shop/order/' + orderId);
+      if(!j.order) return;
+      if(j.order.status === 'done'){
+        clearInterval(aiQrTimers[orderId]); clearInterval(poll);
+        if(el) el.classList.add('gone');
+        appendBot('🎉 Key đã được giao!\n<code>' + esc(j.order.key||'') + '</code>\nVào tab Key để xem lại.');
+      } else if(j.order.status === 'bill_sent'){
+        if(tmr) tmr.textContent = '📷 Đã nhận bill — chờ admin duyệt';
+        if(btn) btn.disabled = true;
+      } else if(j.order.status === 'expired' || j.order.status === 'cancelled'){
+        clearInterval(aiQrTimers[orderId]); clearInterval(poll);
+        if(el) el.classList.add('gone');
+        if(tmr) tmr.textContent = '❌ QR đã hết hạn / bị xóa';
+      }
+    }catch(e){}
+  }, 4000);
+  // Dừng poll sau TTL + buffer
+  setTimeout(function(){ clearInterval(poll); }, (expireIn + 30) * 1000);
+}
+
+window.sendAI = async function(){
+  var i = $('aiIn'), m = i.value.trim(); if(!m) return;
+  i.value = '';
+  $('aiLog').innerHTML += '<div class="m me"><div class="av">👤</div><div class="b">' + esc(m) + '</div></div>';
+  $('aiLog').scrollTop = $('aiLog').scrollHeight;
+  try{
+    var j = await api('/api/shop/chat', {method:'POST', body:JSON.stringify({msg:m, history:aiHist})});
+    aiHist.push({role:'user', content:m});
+    aiHist.push({role:'assistant', content:j.reply});
+
+    if(j.action === 'order' && j.qrUrl && j.order){
+      aiOrderId = j.order.id;
+      var wrapId = 'qrwrap_' + j.order.id;
+      var html = esc(j.reply)
+        + '<div class="qr-chat" id="' + wrapId + '">'
+        + '<img src="' + esc(j.qrUrl) + '" alt="QR">'
+        + '<div class="ct">' + esc(j.content || j.order.content || '') + '</div>'
+        + '<div class="tmr">⏱ Đang tải...</div>'
+        + '<button type="button" class="bill-btn" data-oid="' + esc(j.order.id) + '">📷 Gửi bill</button>'
+        + '</div>';
+      appendBot(html);
+      var wrap = document.getElementById(wrapId);
+      if(wrap){
+        var b = wrap.querySelector('.bill-btn');
+        if(b) b.onclick = function(){
+          $('aiBillIn').dataset.oid = j.order.id;
+          $('aiBillIn').click();
+        };
+      }
+      startAiQrCountdown(j.order.id, j.expireIn || 120, wrapId);
+    } else if(j.action === 'need_bill' && j.order && j.order.id){
+      aiOrderId = j.order.id;
+      var html2 = esc(j.reply)
+        + '<div class="qr-chat" id="billonly_' + esc(j.order.id) + '">'
+        + '<button type="button" class="bill-btn" id="billbtn_' + esc(j.order.id) + '">📷 Gửi bill ngay</button>'
+        + '</div>';
+      appendBot(html2);
+      var bb = document.getElementById('billbtn_' + j.order.id);
+      if(bb) bb.onclick = function(){
+        $('aiBillIn').dataset.oid = j.order.id;
+        $('aiBillIn').click();
+      };
+    } else {
+      appendBot(esc(j.reply));
+    }
+  }catch(e){
+    appendBot('⚠️ ' + esc(e.message));
+  }
+};
+
+$('aiBillIn').onchange = async function(){
+  var oid = this.dataset.oid || aiOrderId;
+  if(!this.files[0] || !oid) return;
+  var fd = new FormData();
+  fd.append('bill', this.files[0]);
+  try{
+    await api('/api/shop/bill/' + oid, {method:'POST', body:fd});
+    appendBot('✅ Đã gửi bill cho đơn ' + oid + '.\nAdmin sẽ kiểm tra và gửi key. Bạn có thể theo dõi ở tab Key.');
+    toast('✅ Đã gửi bill');
+    // Dừng countdown xóa QR — giữ QR nhưng đánh dấu đã gửi bill
+    if(aiQrTimers[oid]) clearInterval(aiQrTimers[oid]);
+    var wrap = document.getElementById('qrwrap_' + oid);
+    if(wrap){
+      var tmr = wrap.querySelector('.tmr');
+      if(tmr) tmr.textContent = '📷 Đã gửi bill — chờ admin';
+      var btn = wrap.querySelector('.bill-btn');
+      if(btn) btn.disabled = true;
+    }
+  }catch(e){ appendBot('⚠️ ' + esc(e.message)); toast('❌ '+e.message); }
+  this.value = '';
+};
+
+$('aiIn').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); sendAI(); } });
+
+/* ── Boot ── */
+(function(){
+  var saved = localStorage.getItem('bh_user');
+  var tok = localStorage.getItem('bh_token');
+  if(tok) API_TOKEN = tok;
+  if(saved){
+    try{ CURRENT_USER = JSON.parse(saved); enterApp(); }catch(e){}
+  }
+})();
+
+refresh();
+refreshSessions();
+renderTerm();
+setInterval(refresh, 5000);
+setInterval(function(){ if($('v-treo').classList.contains('active')) refreshSessions(); }, 8000);
+})();
+</script>
+</body>
+</html>
